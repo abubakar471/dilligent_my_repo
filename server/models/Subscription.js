@@ -23,6 +23,7 @@ const subscriptionSchema = new mongoose.Schema({
   stripeSubscriptionId: {
     type: String,
     required: true,
+    unique : true
   },
 });
 

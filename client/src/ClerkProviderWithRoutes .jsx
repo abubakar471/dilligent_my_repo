@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import { CONFIG } from "./config";
 import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/RegisterPage";
+import CheckoutFailed from "./pages/CheckoutFailed";
 
 const ClerkProviderWithRoutes = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const ClerkProviderWithRoutes = () => {
         <Route path="/login/*" name="Login" element={<LoginPage />} />
         <Route path="/register/*" name="Register" element={<RegisterPage />} />
         <Route path="/" name="Home" element={<HomePage />} />
+        <Route path="/checkout-failed" name="Checkout Failed" element={<CheckoutFailed />} />
       </Routes>
     </ClerkProvider>
   );

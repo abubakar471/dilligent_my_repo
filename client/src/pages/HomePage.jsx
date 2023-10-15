@@ -66,6 +66,7 @@ import Suggestions from "../components/Suggestions";
 import Conversation from "../components/Conversation";
 import { checkSubscription } from "../utility/checkSubscription";
 import axios from "axios";
+import Loader from "../components/Loader";
 
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
 
@@ -427,11 +428,13 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    const div = scrollableDivRef.current;
-    div.scrollTo({
-      top: div.scrollHeight,
-      behavior: "smooth",
-    });
+    if (isPro) {
+      const div = scrollableDivRef.current;
+      div.scrollTo({
+        top: div.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [conversation]); // Triggered whenever `conversation` changes
 
   const sendCustomiseMessage = async (prompt) => {
@@ -667,194 +670,199 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-        <div>
-          <SplitterLayout
-            percentage={false}
-            primaryIndex={0}
-            primaryMinSize={200}
-            secondaryInitialSize={window.innerWidth - 270 - 4}
-          >
-            <div>
-              <HomeLeftPannel
-                handleGoogleFilePicker={handleGoogleFilePicker}
-                oneDriverChooseBtn={oneDriverChooseBtn}
-                setDriveType={setDriveType}
-                setUserFileInfo={setUserFileInfo}
-              />
-            </div>
-            <div>
-              <div className="container-fluid text-center w-full h-screen">
-                <div className="row w-full h-screen gx-0">
-                  <div className="col position-relative py-3">
-                    <div className="row align-items-start">
-                      <div className="col">
-                        <CHeader position="sticky" className="mb-4">
-                          <CContainer fluid className="justify-content-end">
-                            <CHeaderNav>
-                              <CNavItem className="relative">
-                                {/* it will have the manage billings link for redirect the user to our customer portal */}
-                                <CNavLink href={void 0}>
-                                  <CIcon
-                                    icon={cilSettings}
-                                    size="lg"
-                                    className="cursor-pointer"
-                                    onClick={() =>
-                                      setOpenSettings(!openSettings)
-                                    }
-                                  />
-                                </CNavLink>
-
-                                {openSettings ? (
-                                  <div
-                                    style={{
-                                      boxShadow: "0 .125px 2px rgba(0,0,0,0.6)",
-                                    }}
-                                    className="bg-white w-[200px] h-auto rounded-md absolute right-2 p-2 text-md flex flex-col items-start"
-                                  >
-                                    {isPro && (
-                                      <div
-                                        className="w-full flex items-center p-2 gap-x-2 cursor-pointer rounded-sm hover:bg-black/10"
-                                        onClick={handleBillings}
-                                      >
-                                        <CIcon icon={cilDollar} size="lg" />
-                                        <span> Manage Billings</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : null}
-                              </CNavItem>
-                              <CNavItem>
-                                <CNavLink href={void 0}>
-                                  <CIcon icon={cilBell} size="lg" />
-                                </CNavLink>
-                              </CNavItem>
-                            </CHeaderNav>
-                            <CHeaderNav>
-                              <UserButton afterSignOutUrl="/login" />
-                            </CHeaderNav>
-                          </CContainer>
-                        </CHeader>
-                      </div>
-                    </div>
-                    <div
-                      className="row"
-                      style={{ height: "calc(100% - 330px)" }}
-                    >
-                      <div
-                        className="col text-right"
-                        style={{
-                          flex: "0 0 100px",
-                          display: "flex",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <RobotSvg />
-                      </div>
-                      <div
-                        className="col border rounded shadow p-3 position-relative"
-                        style={{
-                          flex: "0 0 calc(100% - 100px)",
-                          height: "100%",
-                          overflowY: "auto",
-                        }}
-                        ref={scrollableDivRef}
-                      >
-                        <Conversation
-                          isThinking={isThinking}
-                          onIndexing={onIndexing}
-                          conversation={conversation}
-                          firstMessage={prompt}
-                        />
-                      </div>
-                    </div>
-                    <div className="container position-absolute bottom-0 start-50 translate-middle-x border-top w-100 pb-3">
-                      {chatReady && (
-                        <>
-                          <div className="row align-items-start">
-                            <div className="col text-left ps-1 subtitle-font">
-                              Suggestions
-                            </div>
-                          </div>
-                          <div className="row align-items-start mt-2">
-                            <Suggestions
-                              sendCustomiseMessage={sendCustomiseMessage}
-                              setPrompt={setPrompt}
-                            />
-                          </div>
-                        </>
-                      )}
-                      <div className="row align-items-start mt-3">
+        {isPro ? (
+          <div>
+            <SplitterLayout
+              percentage={false}
+              primaryIndex={0}
+              primaryMinSize={200}
+              secondaryInitialSize={window.innerWidth - 270 - 4}
+            >
+              <div>
+                <HomeLeftPannel
+                  handleGoogleFilePicker={handleGoogleFilePicker}
+                  oneDriverChooseBtn={oneDriverChooseBtn}
+                  setDriveType={setDriveType}
+                  setUserFileInfo={setUserFileInfo}
+                />
+              </div>
+              <div>
+                <div className="container-fluid text-center w-full h-screen">
+                  <div className="row w-full h-screen gx-0">
+                    <div className="col position-relative py-3">
+                      <div className="row align-items-start">
                         <div className="col">
-                          <div className="input-group">
-                            <CFormInput
-                              className="mb-3 prompt"
-                              value={prompt}
-                              onChange={(e) => setPrompt(e.target.value)}
-                              type="text"
-                              placeholder="Ask something"
-                              aria-label="default input example"
-                            />
-                            <div className="input-group-append">
-                              <button
-                                className="btn btn-secondary"
-                                type="button"
-                              >
-                                <i className="fa fa-paperclip"></i>
-                              </button>
-                              <button
-                                className="btn btn-secondary"
-                                type="button"
-                                onClick={sendMessage}
-                                disabled={!chatReady}
-                              >
-                                <i className="fa fa-paper-plane"></i>
-                              </button>
+                          <CHeader position="sticky" className="mb-4">
+                            <CContainer fluid className="justify-content-end">
+                              <CHeaderNav>
+                                <CNavItem className="relative">
+                                  {/* it will have the manage billings link for redirect the user to our customer portal */}
+                                  <CNavLink href={void 0}>
+                                    <CIcon
+                                      icon={cilSettings}
+                                      size="lg"
+                                      className="cursor-pointer"
+                                      onClick={() =>
+                                        setOpenSettings(!openSettings)
+                                      }
+                                    />
+                                  </CNavLink>
+
+                                  {openSettings ? (
+                                    <div
+                                      style={{
+                                        boxShadow:
+                                          "0 .125px 2px rgba(0,0,0,0.6)",
+                                      }}
+                                      className="bg-white w-[200px] h-auto rounded-md absolute right-2 p-2 text-md flex flex-col items-start"
+                                    >
+                                      {isPro && (
+                                        <div
+                                          className="w-full flex items-center p-2 gap-x-2 cursor-pointer rounded-sm hover:bg-black/10"
+                                          onClick={handleBillings}
+                                        >
+                                          <CIcon icon={cilDollar} size="lg" />
+                                          <span> Manage Billings</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : null}
+                                </CNavItem>
+                                <CNavItem>
+                                  <CNavLink href={void 0}>
+                                    <CIcon icon={cilBell} size="lg" />
+                                  </CNavLink>
+                                </CNavItem>
+                              </CHeaderNav>
+                              <CHeaderNav>
+                                <UserButton afterSignOutUrl="/login" />
+                              </CHeaderNav>
+                            </CContainer>
+                          </CHeader>
+                        </div>
+                      </div>
+                      <div
+                        className="row"
+                        style={{ height: "calc(100% - 330px)" }}
+                      >
+                        <div
+                          className="col text-right"
+                          style={{
+                            flex: "0 0 100px",
+                            display: "flex",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <RobotSvg />
+                        </div>
+                        <div
+                          className="col border rounded shadow p-3 position-relative"
+                          style={{
+                            flex: "0 0 calc(100% - 100px)",
+                            height: "100%",
+                            overflowY: "auto",
+                          }}
+                          ref={scrollableDivRef}
+                        >
+                          <Conversation
+                            isThinking={isThinking}
+                            onIndexing={onIndexing}
+                            conversation={conversation}
+                            firstMessage={prompt}
+                          />
+                        </div>
+                      </div>
+                      <div className="container position-absolute bottom-0 start-50 translate-middle-x border-top w-100 pb-3">
+                        {chatReady && (
+                          <>
+                            <div className="row align-items-start">
+                              <div className="col text-left ps-1 subtitle-font">
+                                Suggestions
+                              </div>
+                            </div>
+                            <div className="row align-items-start mt-2">
+                              <Suggestions
+                                sendCustomiseMessage={sendCustomiseMessage}
+                                setPrompt={setPrompt}
+                              />
+                            </div>
+                          </>
+                        )}
+                        <div className="row align-items-start mt-3">
+                          <div className="col">
+                            <div className="input-group">
+                              <CFormInput
+                                className="mb-3 prompt"
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                                type="text"
+                                placeholder="Ask something"
+                                aria-label="default input example"
+                              />
+                              <div className="input-group-append">
+                                <button
+                                  className="btn btn-secondary"
+                                  type="button"
+                                >
+                                  <i className="fa fa-paperclip"></i>
+                                </button>
+                                <button
+                                  className="btn btn-secondary"
+                                  type="button"
+                                  onClick={sendMessage}
+                                  disabled={!chatReady}
+                                >
+                                  <i className="fa fa-paper-plane"></i>
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="row align-items-start mb-2">
-                        <div className="col text-left ps-1 subtitle-font">
-                          Output Files
+                        <div className="row align-items-start mb-2">
+                          <div className="col text-left ps-1 subtitle-font">
+                            Output Files
+                          </div>
                         </div>
-                      </div>
-                      <div className="row align-items-start normal-font">
-                        <CToast
-                          autohide={false}
-                          visible={true}
-                          className="align-items-center rounded-pill ms-1 me-1"
-                          style={{ width: "300px" }}
-                        >
-                          <div className="d-flex">
-                            <CToastBody>
-                              <span className="fa fa-file-pdf-o me-1"></span>
-                              08/23 financial report
-                            </CToastBody>
-                            <CToastClose className="me-2 m-auto fa fa-times" />
-                          </div>
-                        </CToast>
-                        <CToast
-                          autohide={false}
-                          visible={true}
-                          className="align-items-center rounded-pill ms-1 me-1"
-                          style={{ width: "200px" }}
-                        >
-                          <div className="d-flex">
-                            <CToastBody>
-                              <span className="fa fa-file-word-o me-1"></span>
-                              revious report
-                            </CToastBody>
-                            <CToastClose className="me-2 m-auto fa fa-times" />
-                          </div>
-                        </CToast>
+                        <div className="row align-items-start normal-font">
+                          <CToast
+                            autohide={false}
+                            visible={true}
+                            className="align-items-center rounded-pill ms-1 me-1"
+                            style={{ width: "300px" }}
+                          >
+                            <div className="d-flex">
+                              <CToastBody>
+                                <span className="fa fa-file-pdf-o me-1"></span>
+                                08/23 financial report
+                              </CToastBody>
+                              <CToastClose className="me-2 m-auto fa fa-times" />
+                            </div>
+                          </CToast>
+                          <CToast
+                            autohide={false}
+                            visible={true}
+                            className="align-items-center rounded-pill ms-1 me-1"
+                            style={{ width: "200px" }}
+                          >
+                            <div className="d-flex">
+                              <CToastBody>
+                                <span className="fa fa-file-word-o me-1"></span>
+                                revious report
+                              </CToastBody>
+                              <CToastClose className="me-2 m-auto fa fa-times" />
+                            </div>
+                          </CToast>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </SplitterLayout>
-        </div>
+            </SplitterLayout>
+          </div>
+        ) : (
+          <Loader />
+        )}
       </SplitterLayout>
     </>
   );
